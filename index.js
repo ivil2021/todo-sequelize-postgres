@@ -23,7 +23,7 @@ app.get('/', (req, res) => {
   res.send('Hello from EXPRESS!');
 });
 
-//--- Getting todos from my database ---//
+//--- Getting all todos from my database ---//
 // app.get('/users', async (req, res) => {
 app.get('/todos', async (req, res) => {
   //   const users = await User.findAll();
@@ -34,24 +34,24 @@ app.get('/todos', async (req, res) => {
 
   console.log(todos);
 });
-//--- Getting todos from my database ---//
+//--- Getting all todos from my database ---//
 
 app.listen(port, () => {
   console.log(`App is listening at http://localhost:${port}`);
 });
 
-//--- Adding todos to my database ---//
-// app.post('/todos', (req, res) => {
-//   Todo.create({
-//     name: req.body.name,
-//     isDone: false,
-//     // }).then((todo) => {
-//   }).then((todo) => {
-//     res.json(todo);
-//   });
-// });
-//--- Adding todos to my database ---//
+//--- Adding a todo to my database ---//
+app.post('/todos', (req, res) => {
+  Todo.create({
+    name: req.body.name,
+    isDone: false,
+  }).then((todo) => {
+    res.json(todo);
+  });
+});
+//--- Adding a todo to my database ---//
 
+//--- Deleting the certain todo by it's id ---//
 app.delete('/todos/:id', async (req, res) => {
   try {
     await Todo.destroy({ where: { id: req.params.id } });
@@ -60,24 +60,35 @@ app.delete('/todos/:id', async (req, res) => {
     res.status(500).send({ message: 'Something wrong!' });
   }
 });
-
-// const jane = await User.create({ name: 'Jane' });
-// console.log(jane.name); // "Jane"
-// await jane.destroy();
-// // Now this entry was removed from the database
+//--- Deleting the certain todo by it's id ---//
 
 // app.patch('/todos/:id', bodyParser.json(), async (req, res) => {
-//   try {
-//     const todo = await Todo.findOne({ id: req.params.id });
+app.patch('/todos/:id', async (req, res) => {
+  try {
+    const todo = await Todo.findByPk(req.params.id);
 
-//     if (req.body.name) {
-//       todo.name = req.body.name;
-//       await todo.save();
-//     }
+    //     if (req.body.name) {
+    if (todo) {
+      todo.name = req.body.name;
+      await todo.save().then((todo) => {
+        res.json(todo);
+      });
+    }
 
-//     res.send(todo);
-//   } catch (e) {
-//     console.log(e);
-//     res.status(404).send({ message: "Todo doesn't exist!" });
-//   }
-// });
+    res.send(todo);
+  } catch (e) {
+    console.log(e);
+    res.status(404).send({ message: "Todo doesn't exist!" });
+  }
+});
+
+/////////
+// If you change the value of some field of an instance, calling save again will update it accordingly:
+
+// const jane = await User.create({ name: "Jane" });
+// console.log(jane.name); // "Jane"
+// jane.name = "Ada";
+// // the name is still "Jane" in the database
+// await jane.save();
+// // Now the name was updated to "Ada" in the database!
+// /////////
